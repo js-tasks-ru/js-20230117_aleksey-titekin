@@ -8,9 +8,9 @@ export function sortStrings(arr, param = 'asc') {
     let sortedArray = arr.slice();
     sortedArray.sort((a,b)=> {
       if (a[0].toLowerCase() === b[0].toLowerCase()) {
-        return b[0].localeCompare(a[0]);
+        return b[0].localeCompare(a[0], 'ru');
       }
-      return a.localeCompare(b); 
+      return a.localeCompare(b, 'ru'); 
     });
                    
     if (param === 'desc') {
