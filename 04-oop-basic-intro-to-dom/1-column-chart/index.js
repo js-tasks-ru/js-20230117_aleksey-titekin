@@ -3,45 +3,51 @@ export default class ColumnChart {
     constructor(obj) {
         Object.assign(this, obj);  
         this.transformData();
-        this.element = document.createElement('div');
         this.render();
     }
 
     render() {
-
-        this.element.innerHTML = `  
-        <div class="column-chart" style="--chart-height: ${this.chartHeight}">
-        <div class="column-chart__title">
-          ${this.label}
-          <a href="${this.link}" class="column-chart__link">View all</a>
-        </div>
-        <div class="column-chart__container">
-          <div data-element="header" class="column-chart__header"> ${this.formatHeading(this.value)} </div>
-          <div data-element="body" class="column-chart__chart"> ${this.createGraf()} </div>
-        </div>
-      </div>`;        
+        this.element = document.createElement('div');
+        this.element.classList.add('column-chart');
+        this.element.style = `--chart-height: ${this.chartHeight}`;
+        this.element.innerHTML = this.getTemplate();      
     }
 
-    createGraf() {
-        let graf = '';
+    getTemplate() {
+        let template = `  
+        <div class="column-chart__title">
+            ${this.label}
+            <a href="${this.link}" class="column-chart__link" ${!(this.link) ? 'hidden' : ''}>View all</a>
+        </div>
+        <div class="column-chart__container">
+            <div data-element="header" class="column-chart__header"> ${this.formatHeading(this.value)} </div>
+            <div data-element="body" class="column-chart__chart"> ${this.getChart()} </div>
+        </div>
+        `;
+        return template;
+    }
+
+    getChart() {
+        let chart = '';
 
         if ((typeof this.data === 'undefined') || (this.data.length === 0))  {
             this.element.classList.add('column-chart_loading');
             return "<object type='image/svg+xml' data='charts-skeleton.svg' id='object' class='icon'></object>";
         } 
-        graf = this.data.map(item => {
+        chart = this.data.map(item => {
             return `<div style="--value: ${item.value}" data-tooltip="${item.part}%"></div>`;            
           }).join('\n');
-        return graf;
+        return chart;
     }      
+
     update(data) {
-        Object.assign(this, data); 
+        this.data = [...data];
         this.transformData();
-        this.render();
+        this.element.innerHTML = this.getTemplate(); 
     }
 
     destroy() {
-
+        this.remove();
     }
 
     remove() {
