@@ -1,5 +1,5 @@
 export default class NotificationMessage {
-    static activeElement = '';
+    static activeElement = null;
 
     constructor(message = '', {duration = 0, type = ''} = {}) {
         this.message = message;
@@ -32,13 +32,17 @@ export default class NotificationMessage {
     }
 
     remove() {
-        NotificationMessage.activeElement= '';
+        if (NotificationMessage.activeElement === this) {
+           NotificationMessage.activeElement = null; 
+        };
         this.element.remove();
     }
 
     show() {
-        
-        NotificationMessage.activeElement = '';
+        if (NotificationMessage.activeElement) {
+            this.destroy.call(NotificationMessage.activeElement);
+        }        
+        NotificationMessage.activeElement = this;
         document.body.append(this.element);
         setTimeout(() => this.remove(), this.duration);
     }
