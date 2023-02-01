@@ -28,7 +28,10 @@ export default class NotificationMessage {
 
     destroy() {
         this.remove();
-        //this.element = '';
+
+        //--ВОПРОС--//
+        //При установки данного значения, падает тест "should have ability to be destroyed"
+        //this.element = {};
     }
 
     remove() {
@@ -38,15 +41,11 @@ export default class NotificationMessage {
         this.element.remove();
     }
 
-    show(root) {
+    show(root = document.body) {
         if (NotificationMessage.activeElement) {
             this.destroy.call(NotificationMessage.activeElement);
         }        
-        if (root) {
-            root.append(this.element)
-        } else {
-            document.body.append(this.element);
-        }
+        root.append(this.element);
         NotificationMessage.activeElement = this;
         setTimeout(() => this.remove(), this.duration);
     }
