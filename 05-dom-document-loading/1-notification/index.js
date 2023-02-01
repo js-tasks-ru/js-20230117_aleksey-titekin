@@ -28,7 +28,7 @@ export default class NotificationMessage {
 
     destroy() {
         this.remove();
-        this.element = '';
+        //this.element = '';
     }
 
     remove() {
@@ -38,12 +38,16 @@ export default class NotificationMessage {
         this.element.remove();
     }
 
-    show() {
+    show(root) {
         if (NotificationMessage.activeElement) {
             this.destroy.call(NotificationMessage.activeElement);
         }        
+        if (root) {
+            root.append(this.element)
+        } else {
+            document.body.append(this.element);
+        }
         NotificationMessage.activeElement = this;
-        document.body.append(this.element);
         setTimeout(() => this.remove(), this.duration);
     }
 
