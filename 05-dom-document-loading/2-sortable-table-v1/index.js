@@ -34,6 +34,8 @@ export default class SortableTable {
     let root = document.createElement('div');
     root.innerHTML = this.template;
     this.element = root.firstElementChild;
+
+    this.subElements = this.getSubElements();
   }
 
 
@@ -42,6 +44,7 @@ export default class SortableTable {
       return `
         <div class="sortable-table__cell" data-id="${item.id}" data-sortable="${item.sortable}" data-order="${(item.order) ? item.order : 'asc'}">
           <span>${item.title}</span>
+          ${(item.id === 'title') ? this.getSortArrow() : ''}
         </div>
         `
       } ).join('\n');
@@ -50,18 +53,15 @@ export default class SortableTable {
   getBodyTemplate() {
     return this.data.map( item => {
         return `
-        <a href="/products/3d-ochki-epson-elpgs03" class="sortable-table__row">
-          <div class="sortable-table__cell">
-            <img class="sortable-table-image" alt="Image" src="http://magazilla.ru/jpg_zoom1/246743.jpg">
-          </div>
-          <div class="sortable-table__cell">${item.title}</div>
-
-          <div class="sortable-table__cell">${item.quantity}</div>
-          <div class="sortable-table__cell">91</div>
-          <div class="sortable-table__cell">6</div>
+        <a href="/products/${item.id}" class="sortable-table__row">
+          ${this.headerConfig.map(column => {
+            if ("template" in column)  
+              return column.template(item.images);
+            return `<div class="sortable-table__cell">${item[column.id]}</div>`
+          }).join('\n')}
         </a>
         `
-      }) 
+      }).join('\n'); 
   }
 
   getLoadingTemplate() {
@@ -77,9 +77,17 @@ export default class SortableTable {
     `
   }
 
+  getSortArrow() {
+    return `
+      <span data-element="arrow" class="sortable-table__sort-arrow">
+        <span class="sort-arrow"></span>
+      </span>
+    `
+  }
+
   getSubElements() {
     const result = {}
-    const elements = this.element.querySelectorAll("data-element");
+    const elements = this.element.querySelectorAll("[data-element]");
 
     for (const subElement of elements) {
       const name = subElement.dataset.element;
@@ -99,6 +107,13 @@ export default class SortableTable {
   }
 
   sort(fieldValue, orderValue) {
+    this.data.sort((a,b) => {
+      [a,b] = [a[fieldValue],b[fieldValue]]
+      if (orderValue === 'desc') [b,a] = [a,b];
+      return (typeof a === 'string') ? a.localeCompare(b, 'ru', {caseFirst: 'upper'}) : a-b;  
+    });
+
+    this.subElements.body.innerHTML = this.getBodyTemplate();
 
   }
 }
