@@ -39,12 +39,21 @@ export default class SortableTable {
   }
 
 
-  getHeaderTemplate() {
+  getHeaderTemplate(fieldValue ='', orderValue = '') {
     return this.headerConfig.map( item => {
+
+      let order = '';
+      let arrow = '';
+
+      if (fieldValue === item.id) {
+        order = orderValue;
+        arrow = this.getSortArrow();
+      }
+
       return `
-        <div class="sortable-table__cell" data-id="${item.id}" data-sortable="${item.sortable}" data-order="${(item.order) ? item.order : 'asc'}">
+        <div class="sortable-table__cell" data-id="${item.id}" data-sortable="${item.sortable}" data-order="${order}">
           <span>${item.title}</span>
-          ${(item.id === 'title') ? this.getSortArrow() : ''}
+          ${arrow}
         </div>
         `
       } ).join('\n');
@@ -110,11 +119,20 @@ export default class SortableTable {
     this.data.sort((a,b) => {
       [a,b] = [a[fieldValue],b[fieldValue]]
       if (orderValue === 'desc') [b,a] = [a,b];
-      return (typeof a === 'string') ? a.localeCompare(b, 'ru', {caseFirst: 'upper'}) : a-b;  
+
+      const sortType = this.headerConfig.find(item => item.id === fieldValue).sortType;
+
+      if (sortType === 'string')
+        return a.localeCompare(b, ['ru','en'], {caseFirst: 'upper'});
+
+      if (sortType === 'date')  
+        return new Date(a.date) - new Date(b.date);
+
+      return a-b;  
     });
 
     this.subElements.body.innerHTML = this.getBodyTemplate();
-
+    this.subElements.header.innerHTML = this.getHeaderTemplate(fieldValue, orderValue);
   }
 }
 
