@@ -9,8 +9,8 @@ class Tooltip {
     this.message = elem.dataset.tooltip;
     elem.addEventListener("pointermove", this.onMove);
     elem.addEventListener("pointerout", this.onOut, { once: true });
-    this.render();
     this.visibleTooltip(true);
+    this.render();
   };
 
   onOut = (event) => {
@@ -41,7 +41,6 @@ class Tooltip {
   render() {
     const wraper = document.createElement("div");
     wraper.innerHTML = `<div class="tooltip">${this.message}</div>`;
-    console.log(wraper)
     this.element = wraper.firstElementChild;
     document.body.append(this.element);
   }
