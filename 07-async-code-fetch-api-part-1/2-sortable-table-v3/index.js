@@ -65,6 +65,13 @@ export default class SortableTable {
 
     this.subElements.header.addEventListener("pointerdown", this.onClick);
     window.addEventListener('scroll', this.onScroll);
+
+    /*
+    this.abort = new AbortController();
+
+    this.subElements.header.addEventListener("pointerdown", this.onClick, { signal: this.abort.signal });
+    window.addEventListener('scroll', this.onScroll, { signal: this.abort.signal });
+    */
   }
 
   getTableTemplate() {
@@ -220,14 +227,16 @@ export default class SortableTable {
 
   remove() {
     if (this.element) {
+      this.subElements.header.removeEventListener("pointerdown", this.onClick);
       this.element.remove();
       
     }
   }
 
   destroy() {
-    this.remove();
     window.removeEventListener('scroll', this.onScroll);
+    this.remove();
+    //this.abort.abort();
   }
 
 
