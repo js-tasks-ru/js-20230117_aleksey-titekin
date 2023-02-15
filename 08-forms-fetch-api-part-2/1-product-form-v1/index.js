@@ -7,52 +7,75 @@ const BACKEND_URL = 'https://course-js.javascript.ru';
 export default class ProductForm {
   dataProduct = {};
   dataCategories = [];
+  defaultFormData = {
+    id: '',
+    title: '',
+    description: '',
+    quantity: 1,
+    subcategory: '',
+    status: 1,
+    price: 100,
+    discount: 0,
+    images: []
+  };
+
+  onSubmit = event => {
+    event.preventDefault();
+    this.save();
+  }
 
   constructor (productId) {
     this.productId = productId;  
   }
 
   async render () {
-    const [ product, categories ] = await this.getData();
-    this.dataProduct = product[0];
+
+    const promiseCategories = this.getCategories();
+    const promiseProduct = this.getProduct();
+
+    const [[ product ], categories ] = await Promise.all([promiseProduct, promiseCategories]);
+    
+    this.dataProduct = product;
     this.dataCategories = categories;
 
     const wrapper = document.createElement('div');
     wrapper.innerHTML = this.getTemplates();
     this.element = wrapper.firstElementChild;
     this.subElements = this.getSubElements();
-    
-    this.fillCategories(this.element, categories);
-    this.fillForm(this.element, product[0]);
 
+    this.fillCategories(this.element, this.dataCategories);    
+    this.fillForm(this.element, this.dataProduct);
+
+    this.initEventListeners();
+    
     return this.element;
   }
 
   fillCategories(root, categories) {
-    const elem = root.querySelector('#subcategory');
-    categories.forEach( category => {
-    if (!category.subcategories) return;
-    category.subcategories.forEach( subCategory => {
-      const option = new Option(`${category.title} > ${subCategory.title}`, subCategory.id);
-      elem.append(option);
-      })
-    })
 
+    const select = root.querySelector('#subcategory')
+
+    categories.forEach( category => {
+        category.subcategories.forEach(subCategory => {
+          const option = new Option(`${category.title} > ${subCategory.title}`, subCategory.id);
+          select.append(option);    
+        } )
+      }
+    );    
   }
 
   fillForm(root, product) {
     const fields = Object.entries(product);
     fields.forEach(item => {
-      const field = root.querySelector(`#${item[0]}`);
-      if (field) {
-        if (item[0] === 'images') {
-          const imageList = root.querySelector('#images');
-          imageList.innerHTML = this.fillImages(item[1]);
-          //this.subElements.imageListContainer.innerHTML = this.fillImages(item[1]);
+      const [field, value] = item;
+      const elem = root.querySelector(`#${field}`);
+      if (elem) {
+        if (field === 'images') {
+          elem.innerHTML = this.fillImages(value);
         } else {
-          field.value = item[1]
+          elem.value = value
         }
-      }      
+      }
     })
   }
 
@@ -80,6 +103,10 @@ export default class ProductForm {
     `
   }
 
+  initEventListeners() {
+    this.subElements.productForm.addEventListener('submit', this.onSubmit);
+  }
+
   getTemplates() {
     return `
       <div class="product-form">
@@ -102,9 +129,7 @@ export default class ProductForm {
           </div>
           <div class="form-group form-group__half_left">
             <label class="form-label">Категория</label>
-            <select id="subcategory" class="form-control" name="subcategory">
-
-            </select>
+            <select id="subcategory" class="form-control" name="subcategory"></select>
           </div>
           <div class="form-group form-group__half_left form-group__two-col">
             <fieldset>
@@ -148,33 +173,80 @@ export default class ProductForm {
     return result;
   }
 
-  async getData() {
-    const product = this.getProduct();
-    const categories = this.getCategories();
-    
-    return await Promise.all([product, categories]);
-  }
-
-  async getProduct() {
+  getProduct() {
     const url = new URL(BACKEND_URL);
     url.pathname = '/api/rest/products';
     url.searchParams.set('id', this.productId);
-    return await this.LoadData(url); 
+    const product = (this.productId) ? this.LoadData(url) : Promise.resolve(this.defaultFormData); 
+    return product
     
   }
 
-  async getCategories() {
+  getCategories() {
     const url = new URL(BACKEND_URL);
     url.pathname = '/api/rest/categories';
     url.searchParams.set('_sort','weight');
     url.searchParams.set('_refs','subcategory');
-    return await this.LoadData(url);
-    
+    return this.LoadData(url); ;
   }
 
-  async LoadData(url) {
-    const data = await fetchJson(url);
+  LoadData(url) {
+    const data = fetchJson(url);
     return data;
+  }
+
+  async save() {
+    const product = this.takeProduct();
+    const url  = new URL(BACKEND_URL);
+    url.pathname = '/api/rest/products';
+    
+    try {
+      const result = await fetchJson(url, {
+      method: this.productId ? 'PATCH' : 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(product)
+    });
+
+    this.dispatchEvent(result.id);
+    } catch (error) {
+      console.error('Ошибка сохранения', error);
+    }
+  }
+
+  takeProduct() {
+    const product = {...this.defaultFormData};
+    const fields = Object.entries(product);
+    fields.forEach(item => {
+        const [field, value] = item;
+        const elem = this.subElements.productForm.querySelector(`#${field}`);
+        if (elem) {
+          if (field !== 'images') {
+            product[field] = Number.isFinite(value) ? Number(elem.value) : elem.value;
+          } else {
+            const items = elem.querySelectorAll('li');
+            items.forEach( item => {
+              const url = item.querySelector('[name="url"]').value;
+              const source = item.querySelector('[name="source"]').value;
+              value.push({ url, source });
+            }
+            )
+            product[field] = value;
+          }
+        }
+      })
+    product.id = this.productId;  
+    return product
+  }
+
+  dispatchEvent (id) {
+    const event = new CustomEvent(
+      (this.productId) ? 'product-updated' : 'product-saved',
+      { detail: id }
+    )
+
+    this.element.dispatchEvent(event);
   }
 
   remove() {
