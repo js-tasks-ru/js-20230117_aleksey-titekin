@@ -29,7 +29,6 @@ export default class ProductForm {
   }
 
   async render () {
-
     const promiseCategories = this.getCategories();
     const promiseProduct = this.getProduct();
 
