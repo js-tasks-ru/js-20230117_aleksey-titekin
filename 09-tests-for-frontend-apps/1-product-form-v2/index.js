@@ -181,7 +181,7 @@ export default class ProductForm {
     const url = new URL(BACKEND_URL);
     url.pathname = '/api/rest/products';
     url.searchParams.set('id', this.productId);
-    const product = (this.productId) ? this.LoadData(url) : Promise.resolve(this.defaultFormData); 
+    const product = (this.productId) ? this.loadData(url) : Promise.resolve(this.defaultFormData); 
     return product
     
   }
@@ -191,10 +191,10 @@ export default class ProductForm {
     url.pathname = '/api/rest/categories';
     url.searchParams.set('_sort','weight');
     url.searchParams.set('_refs','subcategory');
-    return this.LoadData(url); ;
+    return this.loadData(url); ;
   }
 
-  LoadData(url) {
+  loadData(url) {
     const data = fetchJson(url);
     return data;
   }
