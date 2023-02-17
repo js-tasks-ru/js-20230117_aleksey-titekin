@@ -28,7 +28,6 @@ export default class ProductForm {
   }
 
   onUploadChange = async event => {
-
     const button = this.element.querySelector('.button-primary-outline');
     button.classList.add('is-loading');
     button.disabled = true;

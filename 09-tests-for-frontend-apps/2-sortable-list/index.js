@@ -26,6 +26,11 @@ export default class SortableList {
             const rect = this.current.getBoundingClientRect();
             this.placeholder.style.height = rect.height + 'px';
 
+            this.shiftX = event.clientX - rect.left;
+            this.shiftY = event.clientY - rect.top;
+
+            console.log(this.shiftX, this.shiftY)
+
             this.current.before(this.placeholder);
 
             this.current.ondragstart = () => false;
@@ -37,13 +42,15 @@ export default class SortableList {
         }
     }
 
-    onPointerMove = event => {
-
-   
-        this.current.style.left = event.pageX - this.shiftX + 'px';
-        this.current.style.top = event.pageY - this.shiftY + 'px';
-
+    onPointerMove = event => {  
+        this.current.style.left = event.clientX + 1 + 'px';
+        this.current.style.top = event.clientY + 1 + 'px';
+ 
         const elem = document.elementFromPoint(event.clientX, event.clientY).closest('.sortable-list__item');
+        
+        this.current.style.left = event.clientX - this.shiftX + 'px';
+        this.current.style.top = event.clientY - this.shiftY + 'px';
+
         if (!elem) return;
 
         const rect = elem.getBoundingClientRect();
