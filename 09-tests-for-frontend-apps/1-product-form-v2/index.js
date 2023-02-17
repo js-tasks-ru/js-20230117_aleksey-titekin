@@ -27,6 +27,43 @@ export default class ProductForm {
     this.save();
   }
 
+  onUploadChange = async event => {
+
+    const button = this.element.querySelector('.button-primary-outline');
+    button.classList.add('is-loading');
+    button.disabled = true;
+
+    for (const file of this.fileInput.files) {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const result = await fetchJson('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: {
+          Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
+        },
+        body: formData,
+        referrer: ''
+      });
+
+      this.imageList.element.append(this.getImage(result.data.link, file.name));
+    }
+
+    button.classList.remove('is-loading');
+    button.disabled = false;
+    this.fileInput.remove();  
+  }
+
+  onUploadImage = event => {
+    this.fileInput = document.createElement('input');
+    this.fileInput.type = 'file';
+    this.fileInput.accept = 'image/*';
+    this.fileInput.hidden = 'true';
+    document.body.append(this.fileInput);
+    this.fileInput.addEventListener('change', this.onUploadChange, {once: true});
+    this.fileInput.click();
+  }
+
   constructor (productId) {
     this.productId = productId;  
   }
@@ -84,31 +121,41 @@ export default class ProductForm {
 
   fillImages(images) {
     const items = 
-      images.map( image => {
-        const element = document.createElement('div');
-        element.innerHTML = `
-          <li class="products-edit__imagelist-item sortable-list__item" style="">
-            <input type="hidden" name="url" value="${image.url}">
-            <input type="hidden" name="source" value="${image.source}">
-            <span>
-              <img src="icon-grab.svg" data-grab-handle="" alt="grab">
-              <img class="sortable-table__cell-img" alt="Image" src="${image.url}">
-              <span>${image.source}</span>
-            </span>
-            <button type="button">
-              <img src="icon-trash.svg" data-delete-handle="" alt="delete">
-            </button>
-          </li>         
-        `;
-        return element.firstElementChild;
-      }
-    );
+      images.map( image => this.getImage(image.url, image.source));
     this.imageList = new SortableList({items: items});
     return this.imageList.element; 
   }
 
+  getImage(url, source) {
+    const element = document.createElement('div');
+    element.innerHTML = this.getImageTemplate(url, source);
+    return element.firstElementChild;
+  }
+
+  getImageTemplate(url, source) {
+    return `
+      <li class="products-edit__imagelist-item sortable-list__item" style="">
+        <input type="hidden" name="url" value="${url}">
+        <input type="hidden" name="source" value="${source}">
+        <span>
+          <img src="icon-grab.svg" data-grab-handle="" alt="grab">
+          <img class="sortable-table__cell-img" alt="Image" src="${url}">
+          <span>${source}</span>
+        </span>
+        <button type="button">
+          <img src="icon-trash.svg" data-delete-handle="" alt="delete">
+        </button>
+      </li>  
+    `
+  }
+
+
   initEventListeners() {
     this.subElements.productForm.addEventListener('submit', this.onSubmit);
+
+    const btn = this.element.querySelector('[name="uploadImage"]');
+    if (btn)
+      btn.addEventListener('click', this.onUploadImage);
   }
 
   getTemplates() {
