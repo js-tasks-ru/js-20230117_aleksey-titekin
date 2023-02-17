@@ -18,9 +18,6 @@ export default class SortableList {
 
             this.xPosition = event.clientX;
 
-            this.shiftX = event.clientX - elem.getBoundingClientRect().left;
-            this.shiftY = event.clientY - elem.getBoundingClientRect().top;
-
             this.placeholder = document.createElement('div');
             this.placeholder.classList.add('sortable-list__placeholder');
 
@@ -31,8 +28,6 @@ export default class SortableList {
 
             this.shiftX = event.clientX - rect.left;
             this.shiftY = event.clientY - rect.top;
-
-            console.log(this.shiftX, this.shiftY)
 
             this.current.before(this.placeholder);
 
