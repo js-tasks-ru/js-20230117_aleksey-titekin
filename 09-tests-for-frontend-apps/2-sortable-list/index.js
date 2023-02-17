@@ -46,6 +46,8 @@ export default class SortableList {
     }
 
     onPointerMove = event => {  
+        if (event.clientY <= 0) return;
+
         this.current.style.left = this.xPosition + 1 + 'px';
         this.current.style.top = event.clientY + 1 + 'px';
  

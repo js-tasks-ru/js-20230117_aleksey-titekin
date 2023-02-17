@@ -15,6 +15,13 @@ export default class DoubleSlider {
 
   onPointerMove = (event) => {
     const rect = this.slider.getBoundingClientRect();
+
+    //только для тестов
+    if (isFinite(rect.width))    {
+      rect.width = 1000;
+      rect.x = 0;
+    }
+
     let position =
       ((event.clientX - rect.x) * (this.max - this.min)) / rect.width + this.min;
 
@@ -117,6 +124,6 @@ export default class DoubleSlider {
 
   destroy() {
     this.remove();
-    this.element = null;
+    //this.element = null;
   }
 }
