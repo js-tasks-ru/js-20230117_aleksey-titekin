@@ -4,6 +4,7 @@ export default class SortableList {
     placeholder;
     shiftX = 10;
     shiftY = 10;
+    xPosition = 0;
 
     onPointerDown = event => {
         let elem = event.target.closest('[data-delete-handle]');
@@ -14,6 +15,8 @@ export default class SortableList {
 
         elem = event.target.closest('[data-grab-handle]');
         if (elem) {
+
+            this.xPosition = event.clientX;
 
             this.shiftX = event.clientX - elem.getBoundingClientRect().left;
             this.shiftY = event.clientY - elem.getBoundingClientRect().top;
@@ -43,10 +46,10 @@ export default class SortableList {
     }
 
     onPointerMove = event => {  
-        this.current.style.left = event.clientX + 1 + 'px';
+        this.current.style.left = this.xPosition + 1 + 'px';
         this.current.style.top = event.clientY + 1 + 'px';
  
-        const elem = document.elementFromPoint(event.clientX, event.clientY).closest('.sortable-list__item');
+        const elem = document.elementFromPoint(this.xPosition, event.clientY).closest('.sortable-list__item');
         
         this.current.style.left = event.clientX - this.shiftX + 'px';
         this.current.style.top = event.clientY - this.shiftY + 'px';
