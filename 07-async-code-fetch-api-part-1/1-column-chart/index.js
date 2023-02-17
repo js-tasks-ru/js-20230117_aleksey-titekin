@@ -73,27 +73,29 @@ export default class ColumnChart {
     return result;
   }
 
-  update(start = new Date(), end = new Date()) {
+  async update(start = new Date(), end = new Date()) {
     this.element.classList.add("column-chart_loading");
 
-    fetch(BACKEND_URL + "/" + this.url)
-      .then((response) => response.json())
-      .then((json) => {
-        this.data = Object.entries(json).filter((item) => {
-          const date = +new Date(item[0]);
-          return ((date >= start) && (date <= end))
-        });
-        
-        this.value = this.data.reduce((sum,item) => sum + item[1],0);
-        this.subElements.header.innerHTML = this.formatHeading(this.value);
+    const url = new URL(this.url, BACKEND_URL);
+    url.searchParams.set('from', start.toISOString());
+    url.searchParams.set('to',end.toISOString());
 
-        this.transformData();
+    const data = await fetchJson(url); 
 
-        if (this.data.length) {
-          this.element.classList.remove("column-chart_loading");
-          this.subElements.body.innerHTML = this.getChart();
-        }
-      });
+    console.log(data);
+
+    this.data = Object.entries(data);
+
+    this.value = this.data.reduce((sum,item) => sum + item[1],0);
+    this.subElements.header.innerHTML = this.formatHeading(this.value);
+
+    this.transformData();
+
+    if (this.data.length) {
+      this.element.classList.remove("column-chart_loading");
+      this.subElements.body.innerHTML = this.getChart();
+    }
+      return data;
   }
 
   destroy() {
