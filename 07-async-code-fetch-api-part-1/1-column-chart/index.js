@@ -82,8 +82,6 @@ export default class ColumnChart {
 
     const data = await fetchJson(url); 
 
-    console.log(data);
-
     this.data = Object.entries(data);
 
     this.value = this.data.reduce((sum,item) => sum + item[1],0);
